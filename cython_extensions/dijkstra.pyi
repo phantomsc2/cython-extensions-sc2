@@ -30,7 +30,8 @@ class DijkstraPathing:
                     max_distance: Size of the search region for a valid starting point. Defaults to 1.
 
         Returns:
-            The lowest cost path from source to any of the targets.
+            The lowest cost path from source to any of the targets, lightly smoothed
+            by replacing cost-preserving subpaths with straighter rasterized segments.
 
         """
         ...

@@ -120,3 +120,13 @@ class TestDijkstra:
         # after heap advance, upper bound should match settled distance
         assert np.isfinite(actual)
         assert_equal(estimate, actual)
+
+    def test_path_is_smoothed_towards_straight_line(self):
+        cost = np.ones((8, 8))
+        targets = np.array([[7, 3]])
+        pathing = cy_dijkstra(cost, targets)
+
+        assert_equal(
+            pathing.get_path((0, 0)),
+            [(0, 0), (1, 1), (2, 1), (3, 1), (4, 2), (5, 2), (6, 3), (7, 3)],
+        )

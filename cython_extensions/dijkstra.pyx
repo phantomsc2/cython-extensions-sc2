@@ -23,6 +23,7 @@ ctypedef int8_t DIR_t
 cdef INDEX_t MIN_CAPACITY = 1024
 cdef DIR_t NO_DIRECTION = -1
 cdef INDEX_t NO_INDEX = -1
+cdef DTYPE_t SMOOTHING_TOLERANCE = 1e-5
 cdef INDEX_t[8] OFFSET_X = [-1, 1, 0, 0, -1, -1, 1, 1]
 cdef INDEX_t[8] OFFSET_Y = [0, 0, -1, 1, -1, 1, -1, 1]
 cdef DTYPE_t[8] COST_DIRECTION = [1.0, 1.0, 1.0, 1.0, M_SQRT2, M_SQRT2, M_SQRT2, M_SQRT2]
@@ -291,7 +292,104 @@ cdef class DijkstraPathing:
                 break
             x -= OFFSET_X[k]
             y -= OFFSET_Y[k]
-        return path
+        if len(path) <= 2:
+            return path
+        return self._smooth_path(path)
+
+    cdef DTYPE_t _step_cost(self, tuple start, tuple end):
+        cdef INDEX_t x0 = start[0]
+        cdef INDEX_t y0 = start[1]
+        cdef INDEX_t x1 = end[0]
+        cdef INDEX_t y1 = end[1]
+        cdef INDEX_t dx = x1 - x0
+        cdef INDEX_t dy = y1 - y0
+        return sqrt(dx * dx + dy * dy) * self.cost[x1 + 1, y1 + 1]
+
+    cdef DTYPE_t _line_cost(self, tuple start, tuple end):
+        cdef INDEX_t x = start[0]
+        cdef INDEX_t y = start[1]
+        cdef INDEX_t x1 = end[0]
+        cdef INDEX_t y1 = end[1]
+        cdef INDEX_t dx = abs(x1 - x)
+        cdef INDEX_t dy = -abs(y1 - y)
+        cdef INDEX_t sx = 1 if x < x1 else -1
+        cdef INDEX_t sy = 1 if y < y1 else -1
+        cdef INDEX_t err = dx + dy
+        cdef INDEX_t e2
+        cdef INDEX_t next_x, next_y
+        cdef INDEX_t step_dx, step_dy
+        cdef DTYPE_t total = 0.0
+        while x != x1 or y != y1:
+            e2 = 2 * err
+            next_x = x
+            next_y = y
+            if e2 >= dy:
+                err += dy
+                next_x += sx
+            if e2 <= dx:
+                err += dx
+                next_y += sy
+            if self.cost[next_x + 1, next_y + 1] == INFINITY:
+                return INFINITY
+            step_dx = next_x - x
+            step_dy = next_y - y
+            total += sqrt(step_dx * step_dx + step_dy * step_dy) * self.cost[next_x + 1, next_y + 1]
+            x = next_x
+            y = next_y
+        return total
+
+    cdef list _line_points(self, tuple start, tuple end):
+        cdef INDEX_t x = start[0]
+        cdef INDEX_t y = start[1]
+        cdef INDEX_t x1 = end[0]
+        cdef INDEX_t y1 = end[1]
+        cdef INDEX_t dx = abs(x1 - x)
+        cdef INDEX_t dy = -abs(y1 - y)
+        cdef INDEX_t sx = 1 if x < x1 else -1
+        cdef INDEX_t sy = 1 if y < y1 else -1
+        cdef INDEX_t err = dx + dy
+        cdef INDEX_t e2
+        cdef list points = [(x, y)]
+        while x != x1 or y != y1:
+            e2 = 2 * err
+            if e2 >= dy:
+                err += dy
+                x += sx
+            if e2 <= dx:
+                err += dx
+                y += sy
+            points.append((x, y))
+        return points
+
+    cdef list _smooth_path(self, list path):
+        cdef Py_ssize_t n = len(path)
+        cdef Py_ssize_t i = 0
+        cdef Py_ssize_t j
+        cdef Py_ssize_t k
+        cdef Py_ssize_t best
+        cdef list prefix_cost = [0.0] * n
+        cdef list smoothed = [path[0]]
+        cdef list segment
+        cdef DTYPE_t shortcut_cost
+        cdef DTYPE_t original_cost
+
+        for k in range(1, n):
+            prefix_cost[k] = prefix_cost[k - 1] + self._step_cost(path[k - 1], path[k])
+
+        while i < n - 1:
+            best = i + 1
+            for j in range(n - 1, i + 1, -1):
+                shortcut_cost = self._line_cost(path[i], path[j])
+                if shortcut_cost == INFINITY:
+                    continue
+                original_cost = prefix_cost[j] - prefix_cost[i]
+                if shortcut_cost <= original_cost + SMOOTHING_TOLERANCE:
+                    best = j
+                    break
+            segment = self._line_points(path[i], path[best])
+            smoothed.extend(segment[1:])
+            i = best
+        return smoothed
 
     cdef (INDEX_t, INDEX_t) _find_starting_point(self, DTYPE_t[:] source, int max_distance):
         # +1 for padding
