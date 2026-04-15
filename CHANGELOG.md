@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.15.0 (2026-04-15)
+
+### Bug Fixes
+
+- Align grid cell colors
+  ([`a051273`](https://github.com/AresSC2/cython-extensions-sc2/commit/a05127314b5edcfa90b61385197ecc4713dd9ba3))
+
+- Remove unused variable
+  ([`5e43861`](https://github.com/AresSC2/cython-extensions-sc2/commit/5e4386171c864f9e9bbe346d520b3c980c7673db))
+
+### Features
+
+- Add priority slider to notebook
+  ([`c8718f8`](https://github.com/AresSC2/cython-extensions-sc2/commit/c8718f8c1919c3571afed3003b95aae90dd1aeb9))
+
+
 ## v0.14.0 (2026-04-09)
 
 
@@ -17,12 +33,26 @@
 - Repair dijkstra notebook
   ([`dbec266`](https://github.com/AresSC2/cython-extensions-sc2/commit/dbec2665afd2ecf1dad2edee8ebedf796b194510))
 
+### Documentation
+
+- Add priorities to docstring example
+  ([`74b71be`](https://github.com/AresSC2/cython-extensions-sc2/commit/74b71bed40f4a996613b05ff3c190b4c206f0333))
+
 ### Features
 
 - Add get_distance lookup
   ([`aae39f5`](https://github.com/AresSC2/cython-extensions-sc2/commit/aae39f5df74632a3a1da3cc08a79523a16b79de8))
 
+- Add target prioritization
+  ([`ead26a0`](https://github.com/AresSC2/cython-extensions-sc2/commit/ead26a06f31ada2af62746e6351312ff15bab3b1))
+
+- Trapezoidal integration of path cost
+  ([`77be31c`](https://github.com/AresSC2/cython-extensions-sc2/commit/77be31ca14853ca0ba459be90e032fcf58385775))
+
 ### Testing
+
+- Add priority test and validation
+  ([`a458fc7`](https://github.com/AresSC2/cython-extensions-sc2/commit/a458fc705e82a037b46b95002b132ef9abbf4887))
 
 - Add regression test for readonly buffers
   ([`b0638a5`](https://github.com/AresSC2/cython-extensions-sc2/commit/b0638a5394c8d4d31a0efb13d4ef21d05616af38))
