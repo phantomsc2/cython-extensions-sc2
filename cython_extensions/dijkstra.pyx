@@ -182,6 +182,8 @@ cdef class DijkstraPathing:
                   const INDEX_t[:, ::1] targets,
                   const DTYPE_t[::1] priorities):
         cdef INDEX_t num_targets = targets.shape[0]
+        cdef INDEX_t k
+        cdef DTYPE_t max_priority = np.max(priorities) if num_targets else 0.0
         self.cost = np.pad(cost, 1, "constant", constant_values=INFINITY)
         self.stride = self.cost.shape[1]
         self.direction = np.full_like(self.cost, NO_DIRECTION, dtype=np.int8)
@@ -196,7 +198,7 @@ cdef class DijkstraPathing:
         for k in range(num_targets):
             self._add_target(
                 self.stride * (targets[k, 0] + 1) + (targets[k, 1] + 1),
-                -priorities[k],
+                max_priority - priorities[k],
             )
 
     cdef void _add_target(self, INDEX_t i, DTYPE_t seed):
